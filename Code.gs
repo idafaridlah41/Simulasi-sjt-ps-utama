@@ -2,15 +2,33 @@ const SHEET_SOAL = 'Bank_Soal';
 const SHEET_HASIL = 'Hasil_Ujian';
 
 /**
- * Fungsi utama saat Web App diakses oleh pengguna
+ * Mengirim data soal dalam format JSON saat diakses oleh GitHub Pages
  */
 function doGet(e) {
-  inisialisasiDatabase();
+  const hasil = getDaftarSoal();
+  return ContentService
+    .createTextOutput(JSON.stringify(hasil))
+    .setMimeType(ContentService.MimeType.JSON);
+}
 
-  return HtmlService.createHtmlOutputFromFile('Index')
-    .setTitle('Simulasi SJT Pengawas Sekolah - Ahli Madya ke Ahli Utama')
-    .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL)
-    .addMetaTag('viewport', 'width=device-width, initial-scale=1');
+/**
+ * Menerima dan menyimpan hasil ujian yang dikirim dari GitHub Pages
+ */
+function doPost(e) {
+  try {
+    const payload = JSON.parse(e.postData.contents);
+    const hasil = simpanHasilUjian(payload);
+    return ContentService
+      .createTextOutput(JSON.stringify(hasil))
+      .setMimeType(ContentService.MimeType.JSON);
+  } catch (error) {
+    return ContentService
+      .createTextOutput(JSON.stringify({
+        status: 'error',
+        message: 'Format data tidak valid: ' + error.message
+      }))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
 }
 
 /**
